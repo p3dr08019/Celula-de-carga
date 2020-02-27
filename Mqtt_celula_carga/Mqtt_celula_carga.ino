@@ -23,7 +23,11 @@ void setup() {
   Serial.begin(115200);
 
   WiFi.begin(ssid, password);
+  
+  Connection_Mqtt();
+}
 
+void Connection_Mqtt(){
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.println("Connecting to WiFi..");
@@ -39,18 +43,15 @@ void setup() {
     if (client.connect("ESP8266Client", mqttUser, mqttPassword )) {
 
       Serial.println("connected");
-
-    } else {
-
+    } 
+    else {
       Serial.print("failed with state ");
       Serial.print(client.state());
       delay(2000);
-
     }
   }
   //client.subscribe("esp/test");
 }
-
 void callback(char* topic, byte* payload, unsigned int length) {
 
   Serial.print("Message arrived in topic: ");
@@ -65,18 +66,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println("-----------------------");
 
 }
-void pull (char text[50]) {
-  Serial.println(text);
-  sprintf(msg, "%s", text);
-}
-void loop() {
+void Print_Sinal(){
+  
   Serial.print(analogRead(POT));
   Serial.print("     ");
   Serial.print(POT);
   Serial.print("     ");
-
   if (sinal >= 0) {
-
+    
     if (analogRead(POT) >= 100 && analogRead(POT) <= 340 ) {
       pull("APERTO FRACO");
     }
@@ -92,4 +89,12 @@ void loop() {
     client.publish("ecg", msg);
     client.loop();
   }
+}
+void pull (char text[50]) {
+  Serial.println(text);
+  sprintf(msg, "%s", text);
+  
+}
+void loop() {
+  Print_Sinal();
 }
