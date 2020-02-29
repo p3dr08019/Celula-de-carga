@@ -1,12 +1,12 @@
- #include <ESP8266WiFi.h>
+#include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
 #define POT A0
 
-const char* ssid = "NoConnection";
-const char* password =  "naoTemSenha";
-const char* mqttServer = "tailor.cloudmqtt.com";
-const int mqttPort = 16494;
+const char* ssid = "ponto";
+const char* password =  "senha888";
+const char* mqttServer = "broker.hivemq.com";
+const int mqttPort = 1883;
 const char* mqttUser = "fffdpzks";
 const char* mqttPassword = "mJwNquIkLedX";
 char msg[50];
@@ -23,11 +23,7 @@ void setup() {
   Serial.begin(115200);
 
   WiFi.begin(ssid, password);
-  
-  Connection_Mqtt();
-}
 
-void Connection_Mqtt(){
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.println("Connecting to WiFi..");
@@ -43,7 +39,7 @@ void Connection_Mqtt(){
     if (client.connect("ESP8266Client", mqttUser, mqttPassword )) {
 
       Serial.println("connected");
-    } 
+    }
     else {
       Serial.print("failed with state ");
       Serial.print(client.state());
@@ -66,34 +62,52 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println("-----------------------");
 
 }
-void Print_Sinal(){
-  
+void Print_Sinal() {
+
   Serial.print(analogRead(POT));
   Serial.print("     ");
   Serial.print(POT);
   Serial.print("     ");
   if (sinal >= 0) {
-    
+
     if (analogRead(POT) >= 100 && analogRead(POT) <= 340 ) {
       pull("APERTO FRACO");
+      client.publish("ecg", msg);
+      client.loop();
+      while (analogRead(POT) >= 100 && analogRead(POT) <= 340) {
+        delay(200);
+      }
     }
     if (analogRead(POT) > 340 && analogRead(POT) <= 680) {
       pull("APERTO MEDIO");
+      client.publish("ecg", msg);
+      client.loop();
+      while (analogRead(POT) > 340 && analogRead(POT) <= 680) {
+        delay(200);
+      }
     }
     if (analogRead(POT) > 680) {
       pull("APERTO FORTE");
+      client.publish("ecg", msg);
+      client.loop();
+      while (analogRead(POT) > 680) {
+        delay(200);
+      }
     }
     if (analogRead(POT) < 100) {
       pull("BOTÃO NÃO APERTADO");
+      client.publish("ecg", msg);
+      client.loop();
+      while (analogRead(POT) < 100) {
+        delay(200);
+      }
     }
-    client.publish("ecg", msg);
-    client.loop();
   }
 }
 void pull (char text[50]) {
   Serial.println(text);
   sprintf(msg, "%s", text);
-  
+
 }
 void loop() {
   Print_Sinal();
